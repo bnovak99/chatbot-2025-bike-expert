@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chatbot 2025 - Bike Expert</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em auto; max-width: 600px; }
+    #chat { border: 1px solid #ccc; padding: 1em; height: 400px; overflow-y: scroll; }
+    .msg { margin: 0.5em 0; }
+    .bot { color: blue; }
+    .user { color: green; }
+  </style>
+</head>
+<body>
+  <h2>🚲 Chatbot 2025 - Bike Expert</h2>
+  <div id="chat"></div>
+  <input type="text" id="input" placeholder="Ask me anything about bikes..." />
+  <button onclick="send()">Send</button>
+  <div id="leadForm" style="display:none; margin-top:20px;">
+    <h3>Get Your Bike Match</h3>
+    <input type="text" id="name" placeholder="Your Name" /><br />
+    <input type="email" id="email" placeholder="Your Email" /><br />
+    <button onclick="submitLead()">Submit</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat");
+    const input = document.getElementById("input");
+
+    async function send() {
+      const userText = input.value;
+      if (!userText) return;
+      appendMsg("user", userText);
+      input.value = "";
+
+      if (userText.toLowerCase().includes("interested") || userText.toLowerCase().includes("buy")) {
+        document.getElementById("leadForm").style.display = "block";
+      }
+
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userText })
+      });
+
+      const data = await response.json();
+      appendMsg("bot", data.reply);
+    }
+
+    function appendMsg(role, text) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.innerText = `${role === 'user' ? "You" : "Bot"}: ${text}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function submitLead() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      if (!name || !email) {
+        alert("Please enter name and email.");
+        return;
+      }
+      const response = await fetch("/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email })
+      });
+      const result = await response.json();
+      alert("Thanks! We'll be in touch soon.");
+    }
+  </script>
+</body>
+</html>
