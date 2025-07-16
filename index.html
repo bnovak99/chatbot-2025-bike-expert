@@ -1,73 +1,107 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chatbot 2025 - Bike Expert</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chatbot 2025 – Bike Expert</title>
   <style>
-    body { font-family: sans-serif; margin: 2em auto; max-width: 600px; }
-    #chat { border: 1px solid #ccc; padding: 1em; height: 400px; overflow-y: scroll; }
-    .msg { margin: 0.5em 0; }
-    .bot { color: blue; }
-    .user { color: green; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      max-width: 600px;
+      margin: auto;
+      background-color: #f6f6f6;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    #chatbox {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      padding: 20px;
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .message {
+      margin-bottom: 12px;
+    }
+
+    .user {
+      font-weight: bold;
+      color: #0077cc;
+    }
+
+    .bot {
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      padding: 10px 16px;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
   </style>
 </head>
 <body>
-  <h2>🚲 Chatbot 2025 - Bike Expert</h2>
-  <div id="chat"></div>
-  <input type="text" id="input" placeholder="Ask me anything about bikes..." />
-  <button onclick="send()">Send</button>
-  <div id="leadForm" style="display:none; margin-top:20px;">
-    <h3>Get Your Bike Match</h3>
-    <input type="text" id="name" placeholder="Your Name" /><br />
-    <input type="email" id="email" placeholder="Your Email" /><br />
-    <button onclick="submitLead()">Submit</button>
-  </div>
+  <h1>Chatbot 2025 – Bike Expert</h1>
+  <div id="chatbox"></div>
+  <input type="text" id="userInput" placeholder="Ask me anything about mountain bikes..." />
+  <button onclick="sendMessage()">Send</button>
 
   <script>
-    const chatBox = document.getElementById("chat");
-    const input = document.getElementById("input");
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const chatbox = document.getElementById("chatbox");
+      const message = input.value.trim();
+      if (!message) return;
 
-    async function send() {
-      const userText = input.value;
-      if (!userText) return;
-      appendMsg("user", userText);
+      // Show user message
+      chatbox.innerHTML += `<div class="message user">You: ${message}</div>`;
       input.value = "";
+      chatbox.scrollTop = chatbox.scrollHeight;
 
-      if (userText.toLowerCase().includes("interested") || userText.toLowerCase().includes("buy")) {
-        document.getElementById("leadForm").style.display = "block";
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await res.json();
+
+        if (data.reply) {
+          chatbox.innerHTML += `<div class="message bot">Bot: ${data.reply}</div>`;
+        } else {
+          chatbox.innerHTML += `<div class="message bot">Bot: Something went wrong.</div>`;
+        }
+      } catch (err) {
+        chatbox.innerHTML += `<div class="message bot">Bot: Server error. Please try again.</div>`;
+        console.error(err);
       }
 
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userText })
-      });
-
-      const data = await response.json();
-      appendMsg("bot", data.reply);
-    }
-
-    function appendMsg(role, text) {
-      const div = document.createElement("div");
-      div.className = `msg ${role}`;
-      div.innerText = `${role === 'user' ? "You" : "Bot"}: ${text}`;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    async function submitLead() {
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      if (!name || !email) {
-        alert("Please enter name and email.");
-        return;
-      }
-      const response = await fetch("/lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email })
-      });
-      const result = await response.json();
-      alert("Thanks! We'll be in touch soon.");
+      chatbox.scrollTop = chatbox.scrollHeight;
     }
   </script>
 </body>
