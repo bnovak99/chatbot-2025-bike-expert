@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chatbot 2025 – Bike Expert</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      max-width: 600px;
+      margin: auto;
+      background-color: #f6f6f6;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    #chatbox {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      padding: 20px;
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .message {
+      margin-bottom: 12px;
+    }
+
+    .user {
+      font-weight: bold;
+      color: #0077cc;
+    }
+
+    .bot {
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      padding: 10px 16px;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chatbot 2025 – Bike Expert</h1>
+  <div id="chatbox"></div>
+  <input type="text" id="userInput" placeholder="Ask me anything about mountain bikes..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const chatbox = document.getElementById("chatbox");
+      const message = input.value.trim();
+      if (!message) return;
+
+      // Show user message
+      chatbox.innerHTML += `<div class="message user">You: ${message}</div>`;
+      input.value = "";
+      chatbox.scrollTop = chatbox.scrollHeight;
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await res.json();
+
+        if (data.reply) {
+          chatbox.innerHTML += `<div class="message bot">Bot: ${data.reply}</div>`;
+        } else {
+          chatbox.innerHTML += `<div class="message bot">Bot: Something went wrong.</div>`;
+        }
+      } catch (err) {
+        chatbox.innerHTML += `<div class="message bot">Bot: Server error. Please try again.</div>`;
+        console.error(err);
+      }
+
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
